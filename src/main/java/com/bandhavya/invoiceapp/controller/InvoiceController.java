@@ -1,34 +1,35 @@
 package com.bandhavya.invoiceapp.controller;
 
 import com.bandhavya.invoiceapp.model.Invoice;
+import com.bandhavya.invoiceapp.model.InvoiceItem;
 import com.bandhavya.invoiceapp.service.InvoiceService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import java.util.stream.Collectors;
+import java.util.List;
 
-/**
- * This controller defines the REST API endpoints for your application.
- * It handles incoming web requests from the frontend.
- */
 @RestController
 @RequestMapping("/api/invoices")
-@CrossOrigin(origins = "*") // Allows requests from any origin (e.g., your frontend)
+@CrossOrigin(origins = "*")
 public class InvoiceController {
 
     @Autowired
     private InvoiceService invoiceService;
 
-    /**
-     * This method handles the HTTP POST request to save a new invoice.
-     * The frontend JavaScript will call this endpoint.
-     * @param invoice The invoice data from the webpage, converted from JSON into an Invoice object.
-     * @return A response indicating success or failure.
-     */
     @PostMapping("/save")
     public ResponseEntity<Invoice> createInvoice(@RequestBody Invoice invoice) {
         try {
-            // Before saving, ensure the bidirectional relationship is set
+            // **New:** Filter out any empty items sent from the frontend
+            if (invoice.getItems() != null) {
+                List<InvoiceItem> nonEmptyItems = invoice.getItems().stream()
+                    .filter(item -> item.getParticulars() != null && !item.getParticulars().trim().isEmpty())
+                    .collect(Collectors.toList());
+                invoice.setItems(nonEmptyItems);
+            }
+
+            // **Crucial:** Set the bidirectional relationship before saving
             if (invoice.getItems() != null) {
                 invoice.getItems().forEach(item -> item.setInvoice(invoice));
             }
@@ -36,11 +37,8 @@ public class InvoiceController {
             Invoice savedInvoice = invoiceService.saveInvoice(invoice);
             return new ResponseEntity<>(savedInvoice, HttpStatus.CREATED);
         } catch (Exception e) {
-            // For debugging, print the error to the console.
             e.printStackTrace();
-            //return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }
-

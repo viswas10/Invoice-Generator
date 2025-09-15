@@ -4,10 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
-/**
- * This class represents the 'invoice_items' table in your database.
- * It holds the data for each line item in an invoice.
- */
 @Entity
 @Table(name = "invoice_items")
 @Data
@@ -26,16 +22,11 @@ public class InvoiceItem {
     private Double rate;
     private Double amount;
 
-    // This defines the many-to-one relationship back to the Invoice.
-    // Many items can belong to one invoice.
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "invoice_id")
-    @JsonIgnore // Prevents issues with infinite loops when converting to JSON.
+    @JsonIgnore
     private Invoice invoice;
 
-	public void setInvoice(Invoice invoice2) {
-		// TODO Auto-generated method stub
-		
-	}
+    // The incorrect, empty setInvoice method has been removed.
+    // Lombok will now provide the correct functionality.
 }
-
