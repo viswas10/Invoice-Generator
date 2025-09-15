@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tax Invoice - Bandhavya Engineering Enterprises</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .invoice-box { max-width: 850px; margin: auto; padding: 20px; border: 2px solid #000; font-size: 14px; line-height: 20px; color: #333; }
+        .bordered-table, .bordered-table th, .bordered-table td { border: 1px solid #333; border-collapse: collapse; }
+        .bordered-table th, .bordered-table td { padding: 8px; }
+        .input-field-bare { border: none; padding: 2px; width: 100%; background-color: transparent; }
+        .input-field-bare:focus { outline: none; background-color: #f0f8ff; }
+        .textarea-field { width: 100%; height: 60px; border: none; padding: 4px 6px; resize: none; }
+        .textarea-field:focus { outline: none; background-color: #f0f8ff; }
+        #status-message { transition: opacity 0.5s ease-in-out; }
+        @media print {
+            body, .invoice-box { box-shadow: none; border: 2px solid #000; margin: 0; padding: 20px; }
+            .no-print { display: none; }
+            .input-field-bare, .textarea-field { border: none; background-color: transparent !important; -webkit-print-color-adjust: exact; }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-4 sm:p-8">
+    <form id="invoice-form">
+        <div class="invoice-box bg-white">
+            <!-- Header: Company Details -->
+            <div class="text-center mb-2">
+                <h1 class="text-2xl sm:text-3xl font-bold text-red-600">BANDHAVYA ENGINEERING ENTERPRISES</h1>
+                <p class="text-sm text-blue-800">Shop No. 2-103/17/6, Akshaya Enclave, Shobana Colony, Balanagar, Hyderabad - 500 042.</p>
+            </div>
+            <div class="flex justify-between items-center text-sm">
+                <div class="text-left"><p><strong>E-mail:</strong> bandhavya.ee@gmail.com</p></div>
+                <div class="text-center font-bold text-lg">TAX INVOICE</div>
+                <div class="text-right"><p><strong>Cell:</strong> 94405 43521</p><p><strong>Whatsapp:</strong> 95152 37646</p></div>
+            </div>
+
+            <!-- Customer and Bill Details Table -->
+            <table class="w-full bordered-table mb-2">
+                 <tr>
+                    <td class="w-1/2 align-top" rowspan="3">
+                        <div class="flex flex-col">
+                            <span>M/s. : <input type="text" id="customerName" class="input-field-bare w-[85%]" placeholder="Customer Name"></span>
+                            <span class="mt-1">Address : <textarea id="customerAddress" class="textarea-field w-[80%]" placeholder="Customer Address"></textarea></span>
+                            <span class="mt-1">PART GSTIN No. : <input type="text" id="customerGstin" class="input-field-bare w-[65%]" placeholder="Customer GSTIN"></span>
+                        </div>
+                    </td>
+                    <td class="w-1/4">Invoice No. <br> <input type="text" id="invoiceNumber" class="input-field-bare w-full"></td>
+                    <td class="w-1/4">Dt. <br> <input type="date" id="invoiceDate" class="input-field-bare w-full"></td>
+                 </tr>
+                 <tr>
+                    <td>D.C. No. <br> <input type="text" id="dcNumber" class="input-field-bare w-full"></td>
+                    <td>Dt. <br> <input type="date" id="dcDate" class="input-field-bare w-full"></td>
+                 </tr>
+                 <tr>
+                    <td>P.O. No. <br> <input type="text" id="poNumber" class="input-field-bare w-full"></td>
+                    <td></td>
+                 </tr>
+            </table>
+
+            <!-- Items Table -->
+            <table class="w-full bordered-table items-table">
+                <thead>
+                    <tr class="text-center font-bold">
+                        <td class="w-16">Sl. No.</td>
+                        <td>PARTICULARS</td>
+                        <td class="w-28">HSN Code</td>
+                        <td class="w-24">Quantity</td>
+                        <td class="w-28">Rate</td>
+                        <td class="w-32">AMOUNT<br>Rs.</td>
+                        <td class="w-10 no-print"></td>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <!-- Rows will be added dynamically here -->
+                </tbody>
+            </table>
+             <button id="add-row" type="button" class="no-print mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-1 px-3 rounded text-xs">
+                + Add Item
+            </button>
+
+            <!-- Footer: Totals and Bank Details -->
+            <table class="w-full bordered-table mt-2">
+                <tr>
+                    <td class="w-2/3 align-top" rowspan="5">
+                        <p class="font-bold">GSTIN No. : 36AFEPD5641M1ZD</p>
+                        <div class="mt-4">
+                            <p class="font-bold underline">Bank Details:</p>
+                            <table class="w-full text-sm mt-1">
+                                <tr><td class="font-semibold w-36">BANK</td><td>: State Bank of India</td></tr>
+                                <tr><td class="font-semibold w-36">BANK ACCOUNT No</td><td>: 36532436933</td></tr>
+                                <tr><td class="font-semibold w-36">BRANCH</td><td>: BHEL R&D, FEROZGUDA</td></tr>
+                                <tr><td class="font-semibold w-36">IFSC CODE</td><td>: SBIN0006300</td></tr>
+                            </table>
+                        </div>
+                         <div class="mt-8">
+                             <p class="font-semibold">Rupees Inwords:</p>
+                             <p id="amount-in-words" class="font-semibold text-sm p-2 min-h-[40px]"></p>
+                         </div>
+                    </td>
+                    <td class="h-8">TOTAL AMOUNT</td>
+                    <td id="subtotal" class="font-semibold text-right w-32">0.00</td>
+                </tr>
+                <tr>
+                    <td class="h-8">
+                        <div class="flex items-center">
+                            <span>CGST@</span>
+                            <select id="cgst" class="input-field-bare tax-select w-20 text-center">
+                               <option value="0">0%</option><option value="1.5">1.5%</option><option value="2.5">2.5%</option><option value="6">6%</option><option value="9">9%</option><option value="14">14%</option>
+                            </select><span>%</span>
+                        </div>
+                    </td>
+                    <td id="cgst-amount" class="text-right">0.00</td>
+                </tr>
+                <tr>
+                    <td class="h-8">
+                         <div class="flex items-center">
+                            <span>SGST@</span>
+                            <select id="sgst" class="input-field-bare tax-select w-20 text-center">
+                               <option value="0">0%</option><option value="1.5">1.5%</option><option value="2.5">2.5%</option><option value="6">6%</option><option value="9">9%</option><option value="14">14%</option>
+                            </select><span>%</span>
+                        </div>
+                    </td>
+                    <td id="sgst-amount" class="text-right">0.00</td>
+                </tr>
+                 <tr>
+                    <td class="h-8">
+                         <div class="flex items-center">
+                            <span>IGST@</span>
+                            <select id="igst" class="input-field-bare tax-select w-20 text-center">
+                               <option value="0">0%</option><option value="1.5">1.5%</option><option value="2.5">2.5%</option><option value="6">6%</option><option value="9">9%</option><option value="14">14%</option>
+                            </select><span>%</span>
+                        </div>
+                    </td>
+                    <td id="igst-amount" class="text-right">0.00</td>
+                </tr>
+                <tr class="font-bold">
+                    <td class="h-8">GRAND TOTAL</td>
+                    <td id="grand-total" class="text-right">0.00</td>
+                </tr>
+            </table>
+
+            <!-- Signature -->
+            <div class="mt-4 flex justify-between items-end">
+                <div></div>
+                 <div class="text-center w-64">
+                     <p class="font-semibold text-red-600">For BANDHAVYA ENGINEERING ENTERPRISES</p>
+                     <div class="mt-8">
+                         <p class="border-t border-gray-500 pt-1 text-red-600">Authorised Signature</p>
+                     </div>
+                 </div>
+            </div>
+        </div>
+    </form>
+    <div id="status-message" class="text-center mt-4 h-6 font-semibold opacity-0"></div>
+    <div class="text-center mt-4 no-print">
+        <button type="submit" form="invoice-form" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-8 rounded-lg shadow-lg">
+            Save & Print Bill
+        </button>
+    </div>
+
+    <script>
+        // --- All the JS from before goes here, with the addition of the form submission logic ---
+        document.addEventListener('DOMContentLoaded', function () {
+            const tableBody = document.getElementById('table-body');
+            const addRowBtn = document.getElementById('add-row');
+            const form = document.getElementById('invoice-form');
+            const statusMessage = document.getElementById('status-message');
+            const minRows = 8;
+
+            document.getElementById('invoiceDate').valueAsDate = new Date();
+            // --- createRow, initializeTable, addRowBtn listener, tableBody click listener, tableBody input listener, tax-select listener, updateAllRowsSerial functions are the same as before ---
+            
+            function createRow(isInitial) {
+                const tr = document.createElement('tr');
+                tr.classList.add('item');
+                let inputHtml = `
+                    <td class="text-center font-semibold"></td>
+                    <td><input type="text" class="input-field-bare particulars" ></td>
+                    <td><input type="text" class="input-field-bare hsn-code text-right" ></td>
+                    <td><input type="number" class="input-field-bare quantity text-right" min="0"></td>
+                    <td><input type="number" class="input-field-bare rate text-right" min="0" step="0.01"></td>
+                    <td class="amount text-right font-medium">0.00</td>
+                `;
+                if (!isInitial) {
+                     inputHtml += `<td class="no-print text-center"><button type="button" class="remove-row text-red-500 hover:text-red-700 font-bold">X</button></td>`;
+                } else {
+                     inputHtml += `<td class="no-print"></td>`;
+                }
+                tr.innerHTML = inputHtml;
+                tableBody.appendChild(tr);
+            }
+
+            function initializeTable() {
+                tableBody.innerHTML = '';
+                createRow(true);
+                for(let i = 1; i < minRows; i++) {
+                    createRow(false);
+                }
+                updateAllRowsSerial();
+            }
+            
+            initializeTable();
+            
+            addRowBtn.addEventListener('click', () => {
+                createRow(false);
+                updateAllRowsSerial();
+            });
+
+            tableBody.addEventListener('click', function (e) {
+                if (e.target.classList.contains('remove-row')) {
+                    if (tableBody.querySelectorAll('tr').length > 1) {
+                        e.target.closest('tr').remove();
+                        updateAllRowsSerial();
+                        calculateTotals();
+                    }
+                }
+            });
+
+            tableBody.addEventListener('input', function (e) {
+                if (e.target.classList.contains('quantity') || e.target.classList.contains('rate')) {
+                    const row = e.target.closest('tr');
+                    const quantity = parseFloat(row.querySelector('.quantity').value) || 0;
+                    const rate = parseFloat(row.querySelector('.rate').value) || 0;
+                    row.querySelector('.amount').textContent = (quantity * rate).toFixed(2);
+                    calculateTotals();
+                }
+            });
+
+            document.querySelectorAll('.tax-select').forEach(select => {
+                select.addEventListener('change', calculateTotals);
+            });
+
+            function updateAllRowsSerial() {
+                 tableBody.querySelectorAll('tr').forEach((row, index) => {
+                     row.cells[0].textContent = index + 1;
+                 });
+            }
+
+            function calculateTotals() {
+                let subtotal = 0;
+                tableBody.querySelectorAll('.item').forEach(row => {
+                    subtotal += parseFloat(row.querySelector('.amount').textContent) || 0;
+                });
+
+                const cgstRate = parseFloat(document.getElementById('cgst').value) || 0;
+                const sgstRate = parseFloat(document.getElementById('sgst').value) || 0;
+                const igstRate = parseFloat(document.getElementById('igst').value) || 0;
+                
+                const cgstAmount = (subtotal * cgstRate) / 100;
+                const sgstAmount = (subtotal * sgstRate) / 100;
+                const igstAmount = (subtotal * igstRate) / 100;
+
+                const grandTotal = subtotal + cgstAmount + sgstAmount + igstAmount;
+
+                document.getElementById('subtotal').textContent = subtotal.toFixed(2);
+                document.getElementById('cgst-amount').textContent = cgstAmount.toFixed(2);
+                document.getElementById('sgst-amount').textContent = sgstAmount.toFixed(2);
+                document.getElementById('igst-amount').textContent = igstAmount.toFixed(2);
+                document.getElementById('grand-total').textContent = grandTotal.toFixed(2);
+                document.getElementById('amount-in-words').textContent = numberToWords(Math.round(grandTotal)) + " Only";
+            }
+
+            function numberToWords(num) {
+                if(num === 0) return "Zero";
+                const a = ['','one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen','seventeen','eighteen','nineteen'];
+                const b = ['','','twenty','thirty','forty','fifty','sixty','seventy','eighty','ninety'];
+                const n = ('000000000' + num).substr(-9).match(/^(\d{2})(\d{2})(\d{2})(\d{1})(\d{2})$/);
+                if (!n) return "";
+                let str = '';
+                str += (n[1] != 0) ? (a[Number(n[1])] || b[n[1][0]] + ' ' + a[n[1][1]]) + ' Crore ' : '';
+                str += (n[2] != 0) ? (a[Number(n[2])] || b[n[2][0]] + ' ' + a[n[2][1]]) + ' Lakh ' : '';
+                str += (n[3] != 0) ? (a[Number(n[3])] || b[n[3][0]] + ' ' + a[n[3][1]]) + ' Thousand ' : '';
+                str += (n[4] != 0) ? (a[Number(n[4])] || b[n[4][0]] + ' ' + a[n[4][1]]) + ' Hundred ' : '';
+                str += (n[5] != 0) ? ((str != '') ? '' : '') + (a[Number(n[5])] || b[n[5][0]] + ' ' + a[n[5][1]]) : '';
+                return str.replace(/\s+/g, ' ').trim().split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
+            }
+
+            calculateTotals();
+
+            // *** NEW: Form Submission Logic ***
+            form.addEventListener('submit', async function(event) {
+                event.preventDefault(); // Prevent default form submission
+
+                const invoiceData = {
+                    customerName: document.getElementById('customerName').value,
+                    customerAddress: document.getElementById('customerAddress').value,
+                    customerGstin: document.getElementById('customerGstin').value,
+                    invoiceNumber: document.getElementById('invoiceNumber').value,
+                    invoiceDate: document.getElementById('invoiceDate').value,
+                    dcNumber: document.getElementById('dcNumber').value,
+                    dcDate: document.getElementById('dcDate').value,
+                    poNumber: document.getElementById('poNumber').value,
+                    subtotal: parseFloat(document.getElementById('subtotal').textContent),
+                    cgstRate: parseFloat(document.getElementById('cgst').value),
+                    sgstRate: parseFloat(document.getElementById('sgst').value),
+                    igstRate: parseFloat(document.getElementById('igst').value),
+                    cgstAmount: parseFloat(document.getElementById('cgst-amount').textContent),
+                    sgstAmount: parseFloat(document.getElementById('sgst-amount').textContent),
+                    igstAmount: parseFloat(document.getElementById('igst-amount').textContent),
+                    grandTotal: parseFloat(document.getElementById('grand-total').textContent),
+                    amountInWords: document.getElementById('amount-in-words').textContent,
+                    items: []
+                };
+
+                tableBody.querySelectorAll('tr.item').forEach(row => {
+                    const particulars = row.querySelector('.particulars').value;
+                    // Only add rows that have content
+                    if (particulars) {
+                        invoiceData.items.push({
+                            particulars: particulars,
+                            hsnCode: row.querySelector('.hsn-code').value,
+                            quantity: parseFloat(row.querySelector('.quantity').value) || 0,
+                            rate: parseFloat(row.querySelector('.rate').value) || 0,
+                            amount: parseFloat(row.querySelector('.amount').textContent) || 0
+                        });
+                    }
+                });
+
+                try {
+                    const response = await fetch('/api/invoices/save', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(invoiceData)
+                    });
+
+                    if (response.ok) {
+                        showStatusMessage('Invoice saved successfully!', 'green');
+                        setTimeout(() => window.print(), 1000); // Print after a short delay
+                    } else {
+                        const error = await response.json();
+                        showStatusMessage(`Error: ${error.message || 'Failed to save invoice.'}`, 'red');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showStatusMessage('Network error. Could not save invoice.', 'red');
+                }
+            });
+
+            function showStatusMessage(message, color) {
+                statusMessage.textContent = message;
+                statusMessage.style.color = color;
+                statusMessage.style.opacity = 1;
+                setTimeout(() => {
+                    statusMessage.style.opacity = 0;
+                }, 4000);
+            }
+        });
+    </script>
+</body>
+</html>
